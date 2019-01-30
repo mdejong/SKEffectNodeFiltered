@@ -8,75 +8,134 @@
 
 #import "GameScene.h"
 
-@implementation GameScene {
-    SKShapeNode *_spinnyNode;
-    SKLabelNode *_label;
-}
+@interface GameScene ()
 
-- (void)didMoveToView:(SKView *)view {
-    // Setup your scene here
-    
-    // Get label node from scene and store it for use later
-    _label = (SKLabelNode *)[self childNodeWithName:@"//helloLabel"];
-    
-    _label.alpha = 0.0;
-    [_label runAction:[SKAction fadeInWithDuration:2.0]];
-    
-    CGFloat w = (self.size.width + self.size.height) * 0.05;
-    
-    // Create shape node to use during mouse interaction
-    _spinnyNode = [SKShapeNode shapeNodeWithRectOfSize:CGSizeMake(w, w) cornerRadius:w * 0.3];
-    _spinnyNode.lineWidth = 2.5;
-    
-    [_spinnyNode runAction:[SKAction repeatActionForever:[SKAction rotateByAngle:M_PI duration:1]]];
-    [_spinnyNode runAction:[SKAction sequence:@[
-                                                [SKAction waitForDuration:0.5],
-                                                [SKAction fadeOutWithDuration:0.5],
-                                                [SKAction removeFromParent],
-                                                ]]];
-}
+@property (nonatomic, retain) SKEffectNode *effectNode;
 
+@property (nonatomic, retain) SKSpriteNode *backgroundNode;
 
-- (void)touchDownAtPoint:(CGPoint)pos {
-    SKShapeNode *n = [_spinnyNode copy];
-    n.position = pos;
-    n.strokeColor = [SKColor greenColor];
-    [self addChild:n];
-}
+@property (nonatomic, retain) SKLabelNode *memoryUsedNode;
 
-- (void)touchMovedToPoint:(CGPoint)pos {
-    SKShapeNode *n = [_spinnyNode copy];
-    n.position = pos;
-    n.strokeColor = [SKColor blueColor];
-    [self addChild:n];
-}
+@property (nonatomic, assign) CGSize backgroundSize;
 
-- (void)touchUpAtPoint:(CGPoint)pos {
-    SKShapeNode *n = [_spinnyNode copy];
-    n.position = pos;
-    n.strokeColor = [SKColor redColor];
-    [self addChild:n];
-}
+@property (nonatomic, assign) int frameOffset;
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    // Run 'Pulse' action from 'Actions.sks'
-    [_label runAction:[SKAction actionNamed:@"Pulse"] withKey:@"fadeInOut"];
-    
-    for (UITouch *t in touches) {[self touchDownAtPoint:[t locationInNode:self]];}
-}
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event{
-    for (UITouch *t in touches) {[self touchMovedToPoint:[t locationInNode:self]];}
-}
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *t in touches) {[self touchUpAtPoint:[t locationInNode:self]];}
-}
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
-    for (UITouch *t in touches) {[self touchUpAtPoint:[t locationInNode:self]];}
-}
+@end
 
+@implementation GameScene
+
+// iPad memory use with largest possible texture.
+// Note that dynamic resize is done in hardware so this
+// animation has minimal CPU impact.
+//
+// With 4096x4096 grayscale sources : 68 megs
+
+-(void)didMoveToView:(SKView *)view {
+  self.scene.backgroundColor = [UIColor blackColor];
+  
+  NSString *filename = @"SmileyFace8bitGray_4096.png";
+  
+  // Original input texture as BGRA pixels = 64 megs of pixel data.
+  CGSize nodeSizeInPixels = CGSizeMake(4096, 4096);
+  
+  // On retina iPad create Node as 2048 x 2048 points
+  int scale = (int) [UIScreen mainScreen].scale;
+  CGSize nodeSizeInPoints = CGSizeMake(nodeSizeInPixels.width / scale, nodeSizeInPixels.height / scale);
+  
+  SKSpriteNode *background = [SKSpriteNode spriteNodeWithColor:[UIColor whiteColor] size:nodeSizeInPoints];
+  
+  background.texture = [SKTexture textureWithImageNamed:filename];
+  
+  //[self addChild:background];
+  //background.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
+  
+  self.backgroundNode = background;
+  self.backgroundSize = background.size;
+  
+  if ((0)) {
+    // Define initial bg size
+    background.size = CGSizeMake(self.backgroundSize.width / 4, self.backgroundSize.height  / 4);
+    //self.backgroundSize = background.size;
+  }
+  
+  if (1) {
+    NSLog(@"initial background size %d x %d", (int)self.backgroundSize.width, (int)self.backgroundSize.height);
+  }
+  
+  // Pixelate CoreImage filter
+  
+  CIFilter *pixellateFilter = [CIFilter filterWithName:@"CIPixellate"];
+  [pixellateFilter setDefaults]; // Remember to setDefaults...
+  [pixellateFilter setValue:@(25.0) forKey:@"inputScale"];
+  
+  SKEffectNode *effectNode = [[SKEffectNode alloc] init];
+  effectNode.shouldEnableEffects = TRUE; // enable CoreImage filtering
+  effectNode.shouldRasterize = FALSE; // generate and then discard tmp framebuffer
+  //effectNode.shouldRasterize = TRUE;
+  effectNode.shouldCenterFilter = TRUE;
+  effectNode.filter = pixellateFilter;
+  self.effectNode = effectNode;
+  
+  [effectNode addChild:background];
+  [self addChild:effectNode];
+  
+  effectNode.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
+  
+  if (1) {
+    NSLog(@"initial effectNode size %d x %d", (int)self.effectNode.frame.size.width, (int)self.effectNode.frame.size.height);
+  }
+  
+  // Display amount of RAM in terms of BGRA pixels that would be used for this texture
+  
+  int numBytes = nodeSizeInPixels.width * nodeSizeInPixels.height * sizeof(uint32_t);
+  
+  SKLabelNode *label = [SKLabelNode labelNodeWithFontNamed:@"Courier New"];
+  label.text = [NSString stringWithFormat:@"RAM %5d mB", numBytes / 1000 / 1000];
+  label.fontSize = 25;
+  label.fontColor = [SKColor whiteColor];
+  label.verticalAlignmentMode = SKLabelVerticalAlignmentModeBottom;
+  label.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
+  label.position = CGPointMake(0, 0);
+  [self addChild:label];
+  
+  self.memoryUsedNode = label;
+  
+  return;
+}
 
 -(void)update:(CFTimeInterval)currentTime {
-    // Called before each frame is rendered
+  const BOOL dumpBackgroundSize = TRUE;
+  
+  const int speedStep = 4;
+  
+  // Set this to 1 to disable the animation on each render
+  if ((0)) {
+    return;
+  }
+  
+  // Rendering only 3 frames still leaks a ton of memory, but
+  // not enough to crash the app.
+  
+//  if (self.frameOffset >= 3) {
+//    return;
+//  }
+  
+  self.frameOffset = self.frameOffset + 1;
+  SKSpriteNode *backgroundNode = self.backgroundNode;
+  int over = self.frameOffset % 300;
+  over *= (speedStep * speedStep);
+  
+  backgroundNode.size = CGSizeMake(self.backgroundSize.width - over, self.backgroundSize.height - over);
+  
+  if (backgroundNode.size.width < 10 || backgroundNode.size.height < 10) {
+    self.frameOffset = 0;
+    backgroundNode.size = self.backgroundSize;
+  }
+  
+  if (dumpBackgroundSize) {
+    NSLog(@"resize background to %d x %d", (int)backgroundNode.size.width, (int)backgroundNode.size.height);
+  }
+  return;
 }
 
 @end

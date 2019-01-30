@@ -16,6 +16,7 @@
 		3C3290A022011E19001EBB6D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C32909F22011E19001EBB6D /* Assets.xcassets */; };
 		3C3290A322011E19001EBB6D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C3290A122011E19001EBB6D /* LaunchScreen.storyboard */; };
 		3C3290A622011E19001EBB6D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C3290A522011E19001EBB6D /* main.m */; };
+		3C3290AD22012038001EBB6D /* SmileyFace8bitGray_4096.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C3290AC22012038001EBB6D /* SmileyFace8bitGray_4096.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		3C3290A222011E19001EBB6D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		3C3290A422011E19001EBB6D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3C3290A522011E19001EBB6D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		3C3290AC22012038001EBB6D /* SmileyFace8bitGray_4096.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SmileyFace8bitGray_4096.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +75,7 @@
 				3C32909722011E15001EBB6D /* GameScene.m */,
 				3C32909922011E15001EBB6D /* GameViewController.h */,
 				3C32909A22011E15001EBB6D /* GameViewController.m */,
+				3C3290AC22012038001EBB6D /* SmileyFace8bitGray_4096.png */,
 				3C32909C22011E15001EBB6D /* Main.storyboard */,
 				3C32909F22011E19001EBB6D /* Assets.xcassets */,
 				3C3290A122011E19001EBB6D /* LaunchScreen.storyboard */,
@@ -143,6 +146,7 @@
 				3C32909322011E15001EBB6D /* GameScene.sks in Resources */,
 				3C3290A022011E19001EBB6D /* Assets.xcassets in Resources */,
 				3C3290A322011E19001EBB6D /* LaunchScreen.storyboard in Resources */,
+				3C3290AD22012038001EBB6D /* SmileyFace8bitGray_4096.png in Resources */,
 				3C32909522011E15001EBB6D /* Actions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
