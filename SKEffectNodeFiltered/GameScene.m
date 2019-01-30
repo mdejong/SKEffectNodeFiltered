@@ -33,12 +33,19 @@
 -(void)didMoveToView:(SKView *)view {
   self.scene.backgroundColor = [UIColor blackColor];
   
-  NSString *filename = @"SmileyFace8bitGray_4096.png";
+  NSString *filename;
+  CGSize nodeSizeInPixels;
   
-  // Original input texture as BGRA pixels = 64 megs of pixel data.
-  CGSize nodeSizeInPixels = CGSizeMake(4096, 4096);
-  
-  // On retina iPad create Node as 2048 x 2048 points
+  if ((1)) {
+    // Use of a the max size texture quickly leads to memory issues
+    filename = @"SmileyFace8bitGray_4096.png";
+    nodeSizeInPixels = CGSizeMake(4096, 4096);
+  } else {
+    // Using a smaller texture does not crash as easily
+    filename = @"SmileyFace8bitGray_1024.png";
+    nodeSizeInPixels = CGSizeMake(1024, 1024);
+  }
+
   int scale = (int) [UIScreen mainScreen].scale;
   CGSize nodeSizeInPoints = CGSizeMake(nodeSizeInPixels.width / scale, nodeSizeInPixels.height / scale);
   
@@ -46,16 +53,12 @@
   
   background.texture = [SKTexture textureWithImageNamed:filename];
   
-  //[self addChild:background];
-  //background.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
-  
   self.backgroundNode = background;
   self.backgroundSize = background.size;
   
   if ((0)) {
     // Define initial bg size
     background.size = CGSizeMake(self.backgroundSize.width / 4, self.backgroundSize.height  / 4);
-    //self.backgroundSize = background.size;
   }
   
   if (1) {
@@ -82,7 +85,7 @@
   effectNode.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
   
   if (1) {
-    NSLog(@"initial effectNode size %d x %d", (int)self.effectNode.frame.size.width, (int)self.effectNode.frame.size.height);
+    NSLog(@"initial background node size %d x %d", (int)background.size.width, (int)background.size.height);
   }
   
   // Display amount of RAM in terms of BGRA pixels that would be used for this texture
@@ -120,9 +123,11 @@
 //    return;
 //  }
   
+  int numSteps = self.backgroundSize.width;
+  
   self.frameOffset = self.frameOffset + 1;
   SKSpriteNode *backgroundNode = self.backgroundNode;
-  int over = self.frameOffset % 300;
+  int over = self.frameOffset % numSteps;
   over *= (speedStep * speedStep);
   
   backgroundNode.size = CGSizeMake(self.backgroundSize.width - over, self.backgroundSize.height - over);
